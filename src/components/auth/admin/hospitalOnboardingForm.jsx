@@ -7,6 +7,9 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [slideDirection, setSlideDirection] = useState('');
 
+  // API base URL
+  const API_BASE_URL = 'http://localhost:5000';
+
   const [hospitalData, setHospitalData] = useState({
     name: '',
     registrationNumber: '',
@@ -30,15 +33,6 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const hospitalTypes = [
-    { value: 'General', label: 'General Hospital' },
-    { value: 'Specialty', label: 'Specialty Hospital' },
-    { value: 'Teaching', label: 'Teaching Hospital' },
-    { value: 'Private', label: 'Private Hospital' },
-    { value: 'Public', label: 'Public Hospital' },
-    { value: 'Clinic', label: 'Clinic' }
-  ];
 
   const steps = [
     { number: 1, title: 'Hospital Details', icon: <Building2 className="w-4 h-4" /> },
@@ -67,7 +61,7 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
     }
 
     try {
-      // Simulate API call
+      // Simulate API call - keeping your original approach
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success('Hospital details saved!');
       handleStepChange(2, 'forward');
@@ -102,7 +96,8 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
     }
 
     try {
-      const response = await fetch('/api/hospital/register-with-verification', {
+      // Real API call to register hospital and send verification email
+      const response = await fetch(`${API_BASE_URL}/api/hospital/register-with-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,15 +108,32 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
         })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         toast.success('Verification code sent to your email!');
         handleStepChange(3, 'forward');
       } else {
-        const error = await response.json();
-        toast.error(error.message || 'Registration failed');
+        // Handle specific error cases
+        if (data.error === 'Hospital already exists') {
+          toast.error('A hospital with this information already exists');
+        } else if (data.error === 'Admin email already exists') {
+          toast.error('An admin with this email already exists');
+        } else if (data.error === 'Validation failed') {
+          toast.error('Please check your input and try again');
+        } else if (data.error === 'Email service unavailable') {
+          toast.error('Unable to send verification email. Please try again later.');
+        } else {
+          toast.error(data.message || data.error || 'Registration failed');
+        }
       }
     } catch (error) {
-      toast.error('Network error. Please try again.');
+      console.error('Registration error:', error);
+      if (error.name === 'TypeError') {
+        toast.error('Network error. Please check your connection and ensure the backend is running.');
+      } else {
+        toast.error('Network error. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +150,8 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
     }
 
     try {
-      const response = await fetch('/api/hospital/verify-email', {
+      // Real API call to verify email
+      const response = await fetch(`${API_BASE_URL}/api/hospital/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -149,9 +162,9 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
         })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
-        
         // Store token and user data
         localStorage.setItem('adminToken', data.token);
         
@@ -161,6 +174,7 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
           email: data.admin.email,
           initials: data.admin.name.split(' ').map(n => n[0]).join('').toUpperCase(),
           role: 'admin',
+          jobTitle: data.admin.jobTitle,
           hospital: data.hospital
         });
 
@@ -168,13 +182,55 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
         toast.success('Email verified successfully!');
         handleStepChange(4, 'forward');
       } else {
-        const error = await response.json();
-        toast.error(error.message || 'Verification failed');
+        // Handle specific error cases
+        if (data.error === 'Token already used') {
+          toast.error('This verification code has already been used');
+        } else if (data.error === 'Token expired') {
+          toast.error('Verification code has expired. Please request a new one');
+        } else if (data.error === 'Invalid token') {
+          toast.error('Invalid verification code. Please try again');
+        } else if (data.error === 'Too many attempts') {
+          toast.error('Too many verification attempts. Please request a new code');
+        } else {
+          toast.error(data.message || data.error || 'Verification failed');
+        }
       }
     } catch (error) {
-      toast.error('Network error. Please try again.');
+      console.error('Verification error:', error);
+      if (error.name === 'TypeError') {
+        toast.error('Network error. Please check your connection and ensure the backend is running.');
+      } else {
+        toast.error('Network error. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/hospital/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: adminData.email
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Verification code resent to your email!');
+        // Clear the current token
+        setVerificationData({ ...verificationData, token: '' });
+      } else {
+        toast.error(data.message || data.error || 'Failed to resend code');
+      }
+    } catch (error) {
+      console.error('Resend error:', error);
+      toast.error('Network error. Please try again.');
     }
   };
 
@@ -507,9 +563,7 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
                     <button 
                       type="button" 
                       className="text-blue-600 hover:underline ml-1 font-medium"
-                      onClick={() => {
-                        toast.success('Verification code resent!');
-                      }}
+                      onClick={handleResendCode}
                     >
                       Resend
                     </button>

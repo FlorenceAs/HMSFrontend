@@ -5,7 +5,8 @@ import { Users, UserCheck } from 'lucide-react'
 import DashboardLayout from '../layout/dashboardLayout'
 import MetricCard from '../../components/dashboard/admin/metricCard'
 import ActivityTable from '../../components/dashboard/admin/activityTable'
-import SystemStatus from '../../components/dashboard/admin/systemStatus'
+import SystemStatus from '../../components/dashboard/admin/patientStatusChart'
+import PatientStatusChart from '../../components/dashboard/admin/patientStatusChart'
 
 // Sample data
 const recentActivities = [
@@ -125,7 +126,7 @@ const Dashboard = ({ user }) => {
           color="blue"
         />
         <MetricCard 
-          title="Recent User Login" 
+          title="Total Patients" 
           value="0"
           icon={UserCheck}
           color="green"
@@ -141,10 +142,7 @@ const Dashboard = ({ user }) => {
           />
         </div>
         <div className="xl:col-span-1">
-          <SystemStatus
-            statusItems={systemStatus}
-            title="System Status"
-          />
+        <PatientStatusChart/>
         </div>
       </div>
     </DashboardLayout>
