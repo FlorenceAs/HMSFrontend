@@ -8,10 +8,11 @@ import {
 import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AdminLoginScreen from "./screens/auth/admin/adminLoginScreen";
 import Dashboard from "./screens/dashboard/dashboard";
 import ProtectedRoute from "./components/dashboard/protectedRoutes";
 import LandingPage from "./screens/landingPage";
+import AdminRegScreen from "./screens/auth/admin/adminRegScreen";
+import AdminLoginScreen from "./screens/auth/admin/adminLoginScreen";
 
 const DEV_MODE = false; // Set to false to enable proper flow
 
@@ -39,9 +40,9 @@ function App() {
             element={<LandingPage />}
           />
 
-          {/* Onboarding/Registration Route */}
+          {/* Admin Login Route */}
           <Route
-            path="/onboarding"
+            path="/admin/login"
             element={
               isAuthenticated ? (
                 <Navigate to="/admin/dashboard" replace />
@@ -54,13 +55,22 @@ function App() {
             }
           />
 
-          {/* Admin Login (redirect from old route) */}
+          {/* Onboarding/Registration Route */}
           <Route
-            path="/admin/login"
-            element={<Navigate to="/onboarding" replace />}
+            path="/onboarding"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/admin/dashboard" replace />
+              ) : (
+                <AdminRegScreen
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUser={setUser}
+                />
+              )
+            }
           />
 
-          {/* Dashboard */}
+          {/* Dashboard - Protected Route */}
           <Route
             path="/admin/dashboard"
             element={
@@ -68,8 +78,24 @@ function App() {
                 isAuthenticated={isAuthenticated}
                 devMode={DEV_MODE}
               >
-                <Dashboard user={user} />
+                <Dashboard 
+                  user={user} 
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUser={setUser}
+                />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Redirect /admin to dashboard if authenticated, otherwise to login */}
+          <Route
+            path="/admin"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/admin/dashboard" replace />
+              ) : (
+                <Navigate to="/admin/login" replace />
+              )
             }
           />
 

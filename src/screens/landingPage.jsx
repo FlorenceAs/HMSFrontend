@@ -15,6 +15,7 @@ import {
   Mail,
   MapPin,
 } from "lucide-react";
+import hmslogo from '../assets/hmslogo.svg'
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -32,6 +33,20 @@ const LandingPage = () => {
 
   const handleGetStarted = () => {
     navigate("/onboarding");
+  };
+
+  const handleSignIn = () => {
+    navigate("/admin/login");
+  };
+
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   const features = [
@@ -155,12 +170,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Heart className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-blue-600">
-                HMS
-              </span>
+            <img src={hmslogo} alt="" />
             </div>
 
             {/* Desktop Navigation */}
@@ -189,13 +199,21 @@ const LandingPage = () => {
               >
                 Contact
               </a>
-              <button
-                onClick={handleGetStarted}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleSignIn}
+                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <span>Sign In</span>
+                </button>
+                <button
+                  onClick={handleGetStarted}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Mobile menu button */}
@@ -240,6 +258,12 @@ const LandingPage = () => {
                   Contact
                 </a>
                 <button
+                  onClick={handleSignIn}
+                  className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <span>Sign In</span>
+                </button>
+                <button
                   onClick={handleGetStarted}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2"
                 >
@@ -274,7 +298,7 @@ const LandingPage = () => {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={handleGetStarted}
+                  onClick={scrollToPricing}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2"
                 >
                   <span>Start Free Trial</span>
@@ -538,7 +562,7 @@ const LandingPage = () => {
               Join thousands of healthcare professionals already using HMS
             </p>
             <button
-              onClick={handleGetStarted}
+              onClick={scrollToPricing}
               className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-full text-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 inline-flex items-center space-x-2"
             >
               <span>Start Your Free Trial</span>

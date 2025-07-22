@@ -13,8 +13,10 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
-import logoimg from "../../assets/colored-logo.svg";
+import logoimg from "../../assets/hmslogo.svg";
 
 const menuConfig = {
   0: [
@@ -39,12 +41,81 @@ const menuConfig = {
 };
 
 const Sidebar = ({
-  roleId = 0,
+  roleId = 0,chrome
   isMobileOpen,
   onMobileClose,
   onMenuItemClick,
+  setIsAuthenticated,
+  setUser,
 }) => {
   const menuItems = menuConfig[roleId] || [];
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      
+      if (token) {
+        // Call the logout endpoint
+        const response = await fetch("/api/admin/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Logout API error:", data);
+          // Continue with logout even if API fails
+        }
+      }
+
+      // Clear local storage
+      localStorage.removeItem("adminToken");
+      
+      // Reset authentication state (with safety checks)
+      if (typeof setIsAuthenticated === 'function') {
+        setIsAuthenticated(false);
+      }
+      if (typeof setUser === 'function') {
+        setUser(null);
+      }
+      
+      // Show success message
+      toast.success("Logged out successfully");
+      
+      // Navigate to login screen
+      navigate("/admin/login", { replace: true });
+      
+    } catch (error) {
+      console.error("Logout error:", error);
+      
+      // Still perform local logout even if API call fails
+      localStorage.removeItem("adminToken");
+      
+      // Reset authentication state (with safety checks)
+      if (typeof setIsAuthenticated === 'function') {
+        setIsAuthenticated(false);
+      }
+      if (typeof setUser === 'function') {
+        setUser(null);
+      }
+      
+      toast.success("Logged out Successfully");
+      navigate("/admin/login", { replace: true });
+    }
+  };
+
+  const handleMenuItemClick = (itemId) => {
+    if (itemId === "logout") {
+      handleLogout();
+    } else {
+      onMenuItemClick?.(itemId);
+    }
+  };
 
   return (
     <>
@@ -57,27 +128,31 @@ const Sidebar = ({
 
       <div
         className={`
-        fixed left-0 top-0 h-[96%] w-64 bg-[#E8EDF2] m-4 border-r border-blue-100 z-50 transform transition-transform duration-300 ease-in-out rounded-3xl
+        fixed left-0 top-0 h-[100%] w-64 bg-[#E8EDF2]  border-r border-blue-100 z-50 transform transition-transform duration-300 ease-in-out rounded-3xl
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0 lg:static lg:z-auto
       `}
       >
-        <div className="p-6 border-b border-blue-100">
-          <img src={logoimg} alt="" />
+        <div className="p-6 text-3xl text-blue-500">
+         {setUser.hospital.name}
         </div>
 
         <nav className="mt-6 px-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const isLogout = item.id === "logout";
+            
             return (
               <button
                 key={item.id}
-                onClick={() => onMenuItemClick?.(item.id)}
+                onClick={() => handleMenuItemClick(item.id)}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 text-left transition-colors rounded-lg mb-2
                   ${
                     item.active
                       ? "bg-[#D1E5F8] text-[#0066CC] shadow-sm"
+                      : isLogout 
+                      ? "text-red-600 hover:bg-red-50 hover:text-red-700"
                       : "text-gray-900 hover:bg-blue-100"
                   }
                 `}

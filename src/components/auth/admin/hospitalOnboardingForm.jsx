@@ -236,7 +236,7 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
 
   const handleAccessDashboard = () => {
     setIsAuthenticated(true);
-    toast.success('Welcome to DovaCare!');
+    toast.success('Welcome to HMS!');
   };
 
   const prevStep = () => {
@@ -606,7 +606,7 @@ const HospitalOnboardingForm = ({ setIsAuthenticated, setUser }) => {
                 <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
                   <CheckCircle className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome to DovaCare!</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome to HMS!</h2>
                 <p className="text-gray-600 mb-4">
                   Your hospital has been successfully registered
                 </p>

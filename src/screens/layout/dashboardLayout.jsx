@@ -4,13 +4,23 @@ import TopNav from '../../utils/ui/topNav';
 
 const DashboardLayout = ({
   children,
-  roleId = 0,
   user,
   title = "Hello Admin",
   subtitle,
-  onMenuItemClick
+  roleId = 0,
+  onMenuItemClick,
+  setIsAuthenticated,
+  setUser
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   const handleMenuItemClick = (itemId) => {
     onMenuItemClick?.(itemId);
@@ -18,23 +28,25 @@ const DashboardLayout = ({
   };
 
   return (
-    <div className="h-screen border overflow-none bg-white flex">
+    <div className="h-screen border overflow-auto bg-white flex p-2">
       <Sidebar
         roleId={roleId}
         isMobileOpen={isMobileMenuOpen}
-        onMobileClose={() => setIsMobileMenuOpen(false)}
+        onMobileClose={closeMobileMenu}
         onMenuItemClick={handleMenuItemClick}
+        setIsAuthenticated={setIsAuthenticated}
+        setUser={user}
       />
       
       <div className="flex-1 flex flex-col h-full overflow-hidden ">
         <TopNav
           user={user}
-          onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onMobileMenuToggle={toggleMobileMenu}
           title={title}
           subtitle={subtitle}
         />
         
-        <main className="flex-1 overflow-none p-2 lg:p-4">
+        <main className="flex-1 overflow-auto p-2 lg:p-4">
           <div className="max-w-8xl ">
             {children}
           </div>
