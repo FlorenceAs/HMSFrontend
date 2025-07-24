@@ -191,14 +191,14 @@ const LandingPage = () => {
               </a>
               <button
                 onClick={handleGetStarted}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+                className="bg-blue-600 hover:bg-blue-800 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
               >
                 <span>Get Started</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Mobile menu button */}
+            
             <button
               className="md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
