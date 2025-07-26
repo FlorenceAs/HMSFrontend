@@ -9,10 +9,13 @@ import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Dashboard from "./screens/dashboard/dashboard";
+import UserPage from "./screens/dashboard/userPage"; 
 import ProtectedRoute from "./components/dashboard/protectedRoutes";
 import LandingPage from "./screens/landingPage";
 import AdminRegScreen from "./screens/auth/admin/adminRegScreen";
 import AdminLoginScreen from "./screens/auth/admin/adminLoginScreen";
+import UserLoginScreen from "./screens/auth/user/userLoginScreen"; // Import the user login screen
+import DoctorDashboard from "./screens/dashboard/doctorDashboard";
 
 const DEV_MODE = false; // Set to false to enable proper flow
 
@@ -26,6 +29,9 @@ function App() {
           email: "dev@dovacare.com",
           initials: "DU",
           role: "admin",
+          hospital: {
+            name: "dovacare"
+          }
         }
       : null
   );
@@ -55,6 +61,26 @@ function App() {
             }
           />
 
+          {/* User Login Route */}
+          <Route
+            path="/user/login"
+            element={
+              isAuthenticated ? (
+                // Redirect based on user role after authentication
+                user?.role === "admin" ? (
+                  <Navigate to="/admin/dashboard" replace />
+                ) : (
+                  <Navigate to="/user/dashboard" replace />
+                )
+              ) : (
+                <UserLoginScreen
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUser={setUser}
+                />
+              )
+            }
+          />
+
           {/* Onboarding/Registration Route */}
           <Route
             path="/onboarding"
@@ -70,7 +96,7 @@ function App() {
             }
           />
 
-          {/* Dashboard - Protected Route */}
+          {/* Admin Dashboard - Protected Route */}
           <Route
             path="/admin/dashboard"
             element={
@@ -78,11 +104,42 @@ function App() {
                 isAuthenticated={isAuthenticated}
                 devMode={DEV_MODE}
               >
-                <Dashboard 
-                  user={user} 
+                <Dashboard
+                  user={user}
                   setIsAuthenticated={setIsAuthenticated}
                   setUser={setUser}
                 />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Users Page - Protected Route */}
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                devMode={DEV_MODE}
+              >
+                <UserPage
+                  user={user}
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUser={setUser}
+                />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* User Dashboard - Protected Route (placeholder for now) */}
+          <Route
+            path="/user/dashboard"
+            element={
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                devMode={DEV_MODE}
+              >
+               
+                <DoctorDashboard/>
               </ProtectedRoute>
             }
           />
@@ -95,6 +152,18 @@ function App() {
                 <Navigate to="/admin/dashboard" replace />
               ) : (
                 <Navigate to="/admin/login" replace />
+              )
+            }
+          />
+
+          {/* Redirect /user to appropriate page based on authentication */}
+          <Route
+            path="/user"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/user/dashboard" replace />
+              ) : (
+                <Navigate to="/user/login" replace />
               )
             }
           />
@@ -118,13 +187,6 @@ function App() {
           pauseOnHover
           theme="light"
         />
-
-        {/* Development Mode Indicator */}
-        {DEV_MODE && (
-          <div className="fixed bottom-4 left-4 bg-yellow-500 text-white px-3 py-2 rounded-lg text-sm font-medium z-50 shadow-lg">
-            🚧 Development Mode - Auth Disabled
-          </div>
-        )}
       </div>
     </Router>
   );

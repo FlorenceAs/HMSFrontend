@@ -12,36 +12,122 @@ import {
   Shield,
   Settings,
   LogOut,
+  Stethoscope,
+  ClipboardList,
+  Edit3,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-
-import logoimg from "../../assets/hmslogo.svg";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const menuConfig = {
-  0: [
+  0: [ // Admin menu
     {
       id: "dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
-      active: true,
+      path: "/admin/dashboard"
     },
-    { id: "user", label: "User", icon: Users },
-    { id: "patients", label: "Patients", icon: UserPlus },
-    { id: "laboratory", label: "Laboratory", icon: FlaskConical },
-    { id: "reception", label: "Reception", icon: Phone },
-    { id: "pharmacy", label: "Pharmacy", icon: Pill },
-    { id: "audit", label: "Audit Logs", icon: FileText },
-    { id: "billing", label: "Billing", icon: CreditCard },
-    { id: "providers", label: "Providers", icon: UserCheck },
-    { id: "access", label: "Access Control", icon: Shield },
-    { id: "settings", label: "System Settings", icon: Settings },
-    { id: "logout", label: "Logout", icon: LogOut },
+    { 
+      id: "user", 
+      label: "User", 
+      icon: Users,
+      path: "/admin/users"
+    },
+    { 
+      id: "patients", 
+      label: "Patients", 
+      icon: UserPlus,
+      path: "/admin/patients"
+    },
+    { 
+      id: "laboratory", 
+      label: "Laboratory", 
+      icon: FlaskConical,
+      path: "/admin/laboratory"
+    },
+    { 
+      id: "reception", 
+      label: "Reception", 
+      icon: Phone,
+      path: "/admin/reception"
+    },
+    { 
+      id: "pharmacy", 
+      label: "Pharmacy", 
+      icon: Pill,
+      path: "/admin/pharmacy"
+    },
+    { 
+      id: "audit", 
+      label: "Audit Logs", 
+      icon: FileText,
+      path: "/admin/audit"
+    },
+    { 
+      id: "billing", 
+      label: "Billing", 
+      icon: CreditCard,
+      path: "/admin/billing"
+    },
+    { 
+      id: "providers", 
+      label: "Providers", 
+      icon: UserCheck,
+      path: "/admin/providers"
+    },
+    { 
+      id: "access", 
+      label: "Access Control", 
+      icon: Shield,
+      path: "/admin/access"
+    },
+    { 
+      id: "settings", 
+      label: "System Settings", 
+      icon: Settings,
+      path: "/admin/settings"
+    },
+    { 
+      id: "logout", 
+      label: "Logout", 
+      icon: LogOut 
+    },
   ],
+  1: [ // Doctor menu (roleId 1)
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/user/dashboard"
+    },
+    { 
+      id: "patients", 
+      label: "Patients", 
+      icon: Users,
+      path: "/user/patients"
+    },
+    { 
+      id: "lab-request", 
+      label: "Lab Request", 
+      icon: FlaskConical,
+      path: "/user/lab-request"
+    },
+    { 
+      id: "prescription", 
+      label: "Prescription", 
+      icon: Edit3,
+      path: "/user/prescription"
+    },
+    { 
+      id: "logout", 
+      label: "Logout", 
+      icon: LogOut 
+    },
+  ]
 };
 
 const Sidebar = ({
-  roleId = 0,chrome
+  roleId = 0,
   isMobileOpen,
   onMobileClose,
   onMenuItemClick,
@@ -50,14 +136,23 @@ const Sidebar = ({
 }) => {
   const menuItems = menuConfig[roleId] || [];
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
+      // Determine token key and logout endpoint based on role
+      const isAdmin = roleId === 0;
+      const tokenKey = isAdmin ? "adminToken" : "userToken";
+      const logoutEndpoint = isAdmin 
+        ? "http://localhost:5000/api/admin/logout"
+        : "http://localhost:5000/api/auth/logout";
+      const loginPath = isAdmin ? "/admin/login" : "/user/login";
+      
+      const token = localStorage.getItem(tokenKey);
       
       if (token) {
         // Call the logout endpoint
-        const response = await fetch("/api/admin/logout", {
+        const response = await fetch(logoutEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -74,7 +169,7 @@ const Sidebar = ({
       }
 
       // Clear local storage
-      localStorage.removeItem("adminToken");
+      localStorage.removeItem(tokenKey);
       
       // Reset authentication state (with safety checks)
       if (typeof setIsAuthenticated === 'function') {
@@ -87,14 +182,18 @@ const Sidebar = ({
       // Show success message
       toast.success("Logged out successfully");
       
-      // Navigate to login screen
-      navigate("/admin/login", { replace: true });
+      // Navigate to appropriate login screen
+      navigate(loginPath, { replace: true });
       
     } catch (error) {
       console.error("Logout error:", error);
       
       // Still perform local logout even if API call fails
-      localStorage.removeItem("adminToken");
+      const isAdmin = roleId === 0;
+      const tokenKey = isAdmin ? "adminToken" : "userToken";
+      const loginPath = isAdmin ? "/admin/login" : "/user/login";
+      
+      localStorage.removeItem(tokenKey);
       
       // Reset authentication state (with safety checks)
       if (typeof setIsAuthenticated === 'function') {
@@ -105,15 +204,19 @@ const Sidebar = ({
       }
       
       toast.success("Logged out Successfully");
-      navigate("/admin/login", { replace: true });
+      navigate(loginPath, { replace: true });
     }
   };
 
-  const handleMenuItemClick = (itemId) => {
-    if (itemId === "logout") {
+  const handleMenuItemClick = (item) => {
+    if (item.id === "logout") {
       handleLogout();
+    } else if (item.path) {
+      navigate(item.path);
+      onMenuItemClick?.(item.id);
     } else {
-      onMenuItemClick?.(itemId);
+      // For items without paths, just call the callback
+      onMenuItemClick?.(item.id);
     }
   };
 
@@ -128,28 +231,30 @@ const Sidebar = ({
 
       <div
         className={`
-        fixed left-0 top-0 h-[100%] w-64 bg-[#E8EDF2]  border-r border-blue-100 z-50 transform transition-transform duration-300 ease-in-out rounded-3xl
+        fixed left-0 top-0 h-[100%] w-64 bg-[#E8EDF2] border-r border-blue-100 z-50 transform transition-transform duration-300 ease-in-out rounded-3xl
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0 lg:static lg:z-auto
       `}
       >
         <div className="p-6 text-3xl text-blue-500">
-         {setUser.hospital.name}
+          dovacare
+          
         </div>
 
         <nav className="mt-6 px-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isLogout = item.id === "logout";
+            const isActive = item.path && location.pathname === item.path;
             
             return (
               <button
                 key={item.id}
-                onClick={() => handleMenuItemClick(item.id)}
+                onClick={() => handleMenuItemClick(item)}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 text-left transition-colors rounded-lg mb-2
                   ${
-                    item.active
+                    isActive
                       ? "bg-[#D1E5F8] text-[#0066CC] shadow-sm"
                       : isLogout 
                       ? "text-red-600 hover:bg-red-50 hover:text-red-700"
